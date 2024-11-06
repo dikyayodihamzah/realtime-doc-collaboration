@@ -103,6 +103,75 @@ socket.onopen = () => {
 
 For a simple frontend interface, you can use `app/index.html`. Open this file in a browser and connect multiple clients (e.g., in different tabs) to see real-time document collaboration in action. This file can be modified according to project needs.
 
+
+## Data Flow Diagram [Future Improvements]
+
+This diagram illustrates the flow of data in the real-time collaborative editing service:
+
+```plaintext
+            ┌──────────────────────┐                ┌─────────────────────┐
+            │    Client A          │                │    Client B         │
+            │ ┌──────────────────┐ │                │ ┌──────────────────┐│
+            │ │ Document Editor  │◀──────────────┐───>│ Document Editor  ││
+            │ └──────────────────┘ │             │  │ └──────────────────┘│
+            └──────────────────────┘             │  └─────────────────────┘
+                        │                        │             │
+                        │                        │             │
+                        ▼                        │             ▼
+               ┌─────────────────┐               │    ┌─────────────────┐
+               │ WebSocket Server│◀──────────────┘    │  Redis (Cache)  │
+               └─────────────────┘                    └─────────────────┘
+                        │                                      │
+                        │                                      ▼
+                        │                            ┌───────────────────┐
+                        ▼                            │  PostgreSQL       │
+               ┌──────────────────┐                  │  (Document Store) │
+               │ Change Buffering │                  └───────────────────┘
+               └──────────────────┘
+                        │
+                        ▼
+               ┌──────────────────┐
+               │  Document State  │
+               └──────────────────┘
+```
+
+### Explanation
+
+1. **Clients (A, B)**: Multiple clients connect to the WebSocket server to edit documents in real-time.
+2. **WebSocket Server**: Manages real-time communication between clients and broadcasts changes to all connected users.
+3. **Change Buffering**: Changes received are temporarily stored in memory or an in-memory store like Redis.
+4. **Redis (optional)**: Redis may be used to manage high-frequency updates and to ensure synchronization in distributed setups.
+5. **Document Store (PostgreSQL)**: Document contents and changes are periodically saved to PostgreSQL, either for backup or to provide a persistent store.
+
+### ERD (Entity Relationship Diagram) [Future Improvements]
+
+If storing document information in PostgreSQL, the following basic structure can be used.
+
+```plaintext
+┌────────────────┐       ┌────────────────────┐
+│   Documents    │       │   Document_Users   │
+├────────────────┤       ├────────────────────┤
+│ id             │       │ doc_id             │
+│ title          │       │ user_id            │
+│ content        │       │ last_modified      │
+│ created_at     │       │                    │
+│ updated_at     │       │                    │
+└────────────────┘       └────────────────────┘
+
+    ┌──────────────────────────┐
+    │        Users             │
+    ├──────────────────────────┤
+    │ id                       │
+    │ name                     │
+    │ email                    │
+    └──────────────────────────┘
+```
+
+1. **Documents**: Stores document metadata and content.
+2. **Document_Users**: Links users to documents, tracking collaborators and their last modified times.
+3. **Users**: Stores user details.
+
+
 ## Code Explanation
 
 ### main.go
