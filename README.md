@@ -1,6 +1,3 @@
-
----
-
 # Real-Time Document Collaboration Backend
 
 This is a simple backend service for real-time document collaboration, similar to Google Docs or Microsoft Word 365. It allows multiple users to edit a shared document and receive updates in real-time using WebSockets.
@@ -58,7 +55,7 @@ This is a simple backend service for real-time document collaboration, similar t
 
 ```bash
 git clone https://github.com/dikyayodihamzah/realtime-doc-collaboration.git
-cd realtime-doc-collab
+cd realtime-doc-collaboration
 ```
 
 ### 2. Install Dependencies
@@ -206,5 +203,3 @@ If storing document information in PostgreSQL, the following basic structure can
 ## License
 
 This project is open-source and available under the MIT License.
-
----
