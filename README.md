@@ -1,25 +1,28 @@
-
----
-
 # Real-Time Document Collaboration Backend
 
 This is a simple backend service for real-time document collaboration, similar to Google Docs or Microsoft Word 365. It allows multiple users to edit a shared document and receive updates in real-time using WebSockets.
 
-## Features
+## Project Requirements
 
-- Real-time collaboration on a shared document.
-- Broadcasts document changes to all connected clients.
-- Synchronizes the document state across all clients.
-- Uses WebSockets for efficient bi-directional communication.
+### Objectives
 
-## Prerequisites
+- **Real-Time Synchronization**: Ensure that any changes made by a user are instantly visible to all other connected users.
+- **Concurrency Handling**: Manage simultaneous edits and minimize conflicts to ensure document consistency.
+- **User-Friendly API**: Provide a WebSocket-based API for efficient, real-time data exchange between clients and the server.
 
-- Go 1.16 or newer
-- [gorilla/websocket](https://github.com/gorilla/websocket) package for WebSocket support. Install it with:
+### Software Requirements
 
-  ```bash
-  go get github.com/gorilla/websocket
-  ```
+- **Go** (1.16+ recommended) - for building and running the backend service.
+- **Docker** (optional, for containerization and easy setup)
+
+### Package Dependencies
+
+- **gorilla/websocket** - to handle WebSocket connections.
+
+### Setup Requirements
+
+1. **Golang**: Install [Go](https://golang.org/doc/install).
+2. **Docker** (optional): If you prefer running the service in a container.
 
 ## Project Structure
 
@@ -51,8 +54,8 @@ This is a simple backend service for real-time document collaboration, similar t
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/realtime-doc-collab.git
-cd realtime-doc-collab
+git clone https://github.com/dikyayodihamzah/realtime-doc-collaboration.git
+cd realtime-doc-collaboration
 ```
 
 ### 2. Install Dependencies
@@ -60,7 +63,7 @@ cd realtime-doc-collab
 Run the following command to install the WebSocket package:
 
 ```bash
-go get github.com/gorilla/websocket
+go mod download
 ```
 
 ### 3. Run the Server
@@ -71,7 +74,7 @@ Execute the following command to start the WebSocket server:
 go run main.go
 ```
 
-The server will start on `http://localhost:8080`.
+The server by default will start on `http://localhost:8080`, or on port you've set on the env. 
 
 ### 4. Connect to the Server
 
@@ -101,7 +104,76 @@ socket.onopen = () => {
 
 ### Sample Frontend (Optional)
 
-For a simple frontend interface, you can use `app/index.html`. Open this file in a browser and connect multiple clients (e.g., in different tabs) to see real-time document collaboration in action. This file can be modified according to project needs.
+For a simple frontend interface, you can use `./app/index.html`. Open this file in a browser and connect multiple clients (e.g., in different tabs) to see real-time document collaboration in action. This file can be modified according to project needs.
+
+
+## Data Flow Diagram [Future Improvements]
+
+This diagram illustrates the flow of data in the real-time collaborative editing service:
+
+```plaintext
+            ┌──────────────────────┐                ┌─────────────────────┐
+            │    Client A          │                │    Client B         │
+            │ ┌──────────────────┐ │                │ ┌──────────────────┐│
+            │ │ Document Editor  │◀──────────────┐───>│ Document Editor  ││
+            │ └──────────────────┘ │             │  │ └──────────────────┘│
+            └──────────────────────┘             │  └─────────────────────┘
+                        │                        │             │
+                        │                        │             │
+                        ▼                        │             ▼
+               ┌─────────────────┐               │    ┌─────────────────┐
+               │ WebSocket Server│◀──────────────┘    │  Redis (Cache)  │
+               └─────────────────┘                    └─────────────────┘
+                        │                                      │
+                        │                                      ▼
+                        │                            ┌───────────────────┐
+                        ▼                            │  PostgreSQL       │
+               ┌──────────────────┐                  │  (Document Store) │
+               │ Change Buffering │                  └───────────────────┘
+               └──────────────────┘
+                        │
+                        ▼
+               ┌──────────────────┐
+               │  Document State  │
+               └──────────────────┘
+```
+
+### Explanation
+
+1. **Clients (A, B)**: Multiple clients connect to the WebSocket server to edit documents in real-time.
+2. **WebSocket Server**: Manages real-time communication between clients and broadcasts changes to all connected users.
+3. **Change Buffering**: Changes received are temporarily stored in memory or an in-memory store like Redis.
+4. **Redis (optional)**: Redis may be used to manage high-frequency updates and to ensure synchronization in distributed setups.
+5. **Document Store (PostgreSQL)**: Document contents and changes are periodically saved to PostgreSQL, either for backup or to provide a persistent store.
+
+### ERD (Entity Relationship Diagram) [Future Improvements]
+
+If storing document information in PostgreSQL, the following basic structure can be used.
+
+```plaintext
+┌────────────────┐       ┌────────────────────┐
+│   Documents    │       │   Document_Users   │
+├────────────────┤       ├────────────────────┤
+│ id             │       │ doc_id             │
+│ title          │       │ user_id            │
+│ content        │       │ last_modified      │
+│ created_at     │       │                    │
+│ updated_at     │       │                    │
+└────────────────┘       └────────────────────┘
+
+    ┌──────────────────────────┐
+    │        Users             │
+    ├──────────────────────────┤
+    │ id                       │
+    │ name                     │
+    │ email                    │
+    └──────────────────────────┘
+```
+
+1. **Documents**: Stores document metadata and content.
+2. **Document_Users**: Links users to documents, tracking collaborators and their last modified times.
+3. **Users**: Stores user details.
+
 
 ## Code Explanation
 
@@ -131,5 +203,3 @@ For a simple frontend interface, you can use `app/index.html`. Open this file in
 ## License
 
 This project is open-source and available under the MIT License.
-
----
