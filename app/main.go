@@ -21,13 +21,11 @@ func main() {
 
 	wss := wssrv.New(hub)
 	wsTopic := os.Getenv("WS_TOPIC")
-	// wsTopic := "/ws"
 	http.HandleFunc(wsTopic, func(w http.ResponseWriter, r *http.Request) {
 		wss.Serve(w, r)
 	})
 
 	addr := os.Getenv("SERVER_PORT")
-	// addr := ":8080"
 	log.Println("Starting server on", addr)
 	log.Fatal(http.ListenAndServe(addr, nil))
 }
